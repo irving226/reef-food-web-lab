@@ -20,9 +20,7 @@ export default function App() {
   const [alpha, setAlpha] = useState(0.1);
   const [k, setK] = useState(1);
   const [metric, setMetric] = useState<MetricKey>("katz");
-  const [compareTo, setCompareTo] = useState<PresetKey | "none">("none");
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  const [baseline, setBaseline] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -33,10 +31,9 @@ export default function App() {
     getPresets()
       .then((p) => {
         setPresets(p);
-        const start = p.corrected ?? Object.values(p)[0];
+        const start = p.reef ?? Object.values(p)[0];
         setNames(start.names);
         setMatrix(start.matrix);
-        setCompareTo(p.original ? "original" : "none");
       })
       .catch((e: Error) =>
         setError(
@@ -72,25 +69,6 @@ export default function App() {
       ctrl.abort();
     };
   }, [names, matrix, removed, alpha, k]);
-
-  // Baseline for before/after comparison: same species, same removals, same alpha
-  const base = compareTo !== "none" ? presets[compareTo] : undefined;
-  const comparable =
-    !!base && same(base.names, names) && compareTo !== activePreset;
-  useEffect(() => {
-    if (!comparable || !base) {
-      setBaseline(null);
-      return;
-    }
-    const ctrl = new AbortController();
-    analyze(
-      { names: base.names, matrix: base.matrix, removed, alpha, k: 1 },
-      ctrl.signal
-    )
-      .then(setBaseline)
-      .catch(() => setBaseline(null));
-    return () => ctrl.abort();
-  }, [comparable, base, removed, alpha]);
 
   const loadPreset = (key: PresetKey) => {
     const p = presets[key];
@@ -189,7 +167,7 @@ export default function App() {
     <div className="wrap">
       <header className="head">
         <div>
-          <div className="eyebrow">Adjacency matrix</div>
+          <div className="eyebrow">Adjacency matrix · Python + React</div>
           <h1>Reef Food Web Lab</h1>
           <p className="lede">
             Edit the matrix and the Python backend recomputes everything with
@@ -206,25 +184,14 @@ export default function App() {
       <div className="controls">
         <div className="ctl">
           <span className="lab">Data</span>
-          <div className="seg">
-            {Object.entries(presets).map(([key, p]) => (
-              <button
-                key={key}
-                id={`preset-${key}`}
-                aria-pressed={activePreset === key}
-                onClick={() => loadPreset(key)}
-                title={p.description}
-              >
-                {p.label}
-              </button>
-            ))}
-            <button
-              aria-pressed={activePreset === "custom"}
-              disabled={activePreset !== "custom"}
-            >
-              Custom
-            </button>
-          </div>
+          <button
+            className="btn"
+            id="reset"
+            onClick={() => loadPreset("reef")}
+            disabled={activePreset === "reef" || !presets.reef}
+          >
+            {activePreset === "reef" ? "Reef data" : "Reset to reef data"}
+          </button>
         </div>
         <div className="ctl">
           <label htmlFor="metric">Size nodes by</label>
@@ -236,21 +203,6 @@ export default function App() {
             {(Object.keys(METRICS) as MetricKey[]).map((m) => (
               <option key={m} value={m}>
                 {METRICS[m].label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="ctl">
-          <label htmlFor="compare">Compare against</label>
-          <select
-            id="compare"
-            value={compareTo}
-            onChange={(e) => setCompareTo(e.target.value)}
-          >
-            <option value="none">Nothing</option>
-            {Object.entries(presets).map(([key, p]) => (
-              <option key={key} value={key}>
-                {p.label}
               </option>
             ))}
           </select>
@@ -413,12 +365,14 @@ export default function App() {
             nodes={result.nodes}
             metric={metric}
             onMetric={setMetric}
-            baseline={comparable ? baseline : null}
-            baselineLabel={base?.label}
             katzWarning={result.summary.katz_warning}
           />
         </section>
       )}
+      <footer className="foot">
+        FastAPI + networkx on the back end, React + Vite on the front. API docs
+        at <a href="/docs">/docs</a>.
+      </footer>
     </div>
   );
 }

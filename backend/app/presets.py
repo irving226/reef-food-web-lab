@@ -30,15 +30,9 @@ CORRECTED[0][10] = 0
 CORRECTED[2][10] = 1
 
 PRESETS = {
-    "original": {
-        "label": "Original",
-        "description": "Phytoplankton → Blue Whale (the data error)",
-        "names": NAMES,
-        "matrix": ORIGINAL,
-    },
-    "corrected": {
-        "label": "Corrected",
-        "description": "Zooplankton → Blue Whale",
+    "reef": {
+        "label": "Reef data",
+        "description": "Caribbean reef food web, 11 species",
         "names": NAMES,
         "matrix": CORRECTED,
     },
