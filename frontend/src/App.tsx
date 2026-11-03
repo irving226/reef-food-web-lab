@@ -168,7 +168,9 @@ export default function App() {
       <header className="head">
         <div>
           <div className="eyebrow">Adjacency matrix · Python + React</div>
-          <h1>Reef Food Web Lab</h1>
+          <h1>
+            Reef Food Web <span className="hl">Lab</span>
+          </h1>
           <p className="lede">
             Edit the matrix and the Python backend recomputes everything with
             networkx and numpy. Click an animal to wipe it out and see who
@@ -343,6 +345,10 @@ export default function App() {
             />
           )}
           <div className="legend">
+            <span>
+              <i className="dot" style={{ background: "var(--coral)" }} />
+              Highest score
+            </span>
             <span>
               <i className="dot" style={{ background: "var(--accent)" }} />
               Alive
