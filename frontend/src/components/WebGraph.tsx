@@ -91,17 +91,32 @@ export default function WebGraph({
         y2 = y[j] - uy * (rad(j) + 4);
       const dead = !alive(i) || !alive(j);
       const hi = !dead && (hover === i || hover === j);
-      const bend = Math.abs(dx) < 4 && Math.abs(lv[j] - lv[i]) > 1 ? 40 : 0;
       const back = lv[j] <= lv[i]; // loop edge pointing down or sideways
+      // If the straight line would pass through another animal's circle, bow it out sideways
+      // so it can't be misread as going through that animal.
+      let bend = back ? 50 : 0;
+      for (let m = 0; m < nodes.length; m++) {
+        if (m === i || m === j) continue;
+        const t = ((x[m] - x[i]) * dx + (y[m] - y[i]) * dy) / (len * len);
+        if (t <= 0.05 || t >= 0.95) continue;
+        const px = x[i] + t * dx,
+          py = y[i] + t * dy;
+        const off = Math.hypot(x[m] - px, y[m] - py);
+        if (off < rad(m) + 14) {
+          const side = (x[m] - px) * -uy + (y[m] - py) * ux >= 0 ? -1 : 1; // push away from the node
+          bend = side * (rad(m) + 34) * 2;
+          break;
+        }
+      }
+      const cx = (x1 + x2) / 2 + -uy * bend,
+        cy = (y1 + y2) / 2 + ux * bend;
       edges.push(
         <path
           key={`${i}-${j}`}
           className={`edge${dead ? " dim" : ""}${hi ? " hi" : ""}${
             back ? " back" : ""
           }`}
-          d={`M${x1},${y1} Q${(x1 + x2) / 2 + bend + (back ? 50 : 0)},${
-            (y1 + y2) / 2
-          } ${x2},${y2}`}
+          d={`M${x1},${y1} Q${cx},${cy} ${x2},${y2}`}
           markerEnd={`url(#ar-${hi ? "h" : back ? "b" : "e"})`}
         />
       );

@@ -375,10 +375,6 @@ export default function App() {
           />
         </section>
       )}
-      <footer className="foot">
-        FastAPI + networkx on the back end, React + Vite on the front. API docs
-        at <a href="/docs">/docs</a>.
-      </footer>
     </div>
   );
 }
